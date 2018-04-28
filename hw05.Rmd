@@ -1,0 +1,255 @@
+---
+title: "HW05"
+author: "Daniel Vo"
+date: "4/22/2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+```{r}
+#' @title Object Die
+#' @description Extract number of a die
+#' @param side side of a die
+#' @param prob probability
+#' @return an object with class of die
+#' @export
+
+die <- function(sides = c(1,2,3,4,5,6), prob = c(rep(1/6,6))) {
+  check_sides(sides)
+  check_prob(prob)
+  
+  yo <- list(
+    sides = sides,
+    prob = prob
+  )
+  class(yo) <- "die"
+  yo
+}
+
+#' @export 
+print.die <- function (x) {
+  cat('object "die"\n\n')
+  cd <- data.frame(side = x$sides, prob = x$prob
+  )
+  print(cd)
+  invisible(x)
+}
+
+# private functions to check probability and side vailidty
+check_prob <- function(prob){
+  if (length(prob) != 6) {
+    stop("Length has to be 6")
+  }
+  if (any(prob > 1) | any(prob < 0)) {
+    stop("Probability has to be between 0 and 1")
+  }
+  if (is.numeric(prob)==FALSE) {
+    stop("Probability has to be a numerical component")
+  }
+  if (sum(prob)!=1){
+    stop("Sum of probability has to be equal to 1")
+  }
+  TRUE
+}
+
+check_sides <- function(sides){
+  if (length(sides) != 6) {
+    stop("Length has to be 6")
+  }
+  if (!is.numeric(sides) & !is.character(sides)) {
+    stop("Sides has to be in either numeric or character forms")
+  }
+  TRUE
+}
+die()
+
+#' @title object roll 
+#' @description to roll the die many times
+#' @param x the die
+#' @param times number of times rolled
+#' @return item die
+#' @return item roll is the list of number that was obtained
+#' @return total number of rolls in total
+#' @return side the various sides of the die
+#' @export
+
+roll <- function(x, times){
+  check_times(times)
+  throw <- basicroll(x, times = times)
+  
+  res <- list(
+    die = x,
+    roll = throw,
+    total = length(throw),
+    side = x$side
+  )
+  class(res) <- "roll"
+  res
+}
+
+# Basic Roll to construct the roll function
+basicroll <- function(x, times=1){
+  sample(x$side, size = times, replace = TRUE)
+}
+adie <- die()
+die10 <- basicroll(adie, times = 10)
+
+#' @export 
+print.roll <- function(x){
+  cat('object "roll"\n\n')
+  cd <- x$roll
+  print(cd)
+  
+  invisible(x)
+}
+
+# private function to check the validity of times
+check_times <- function(times) {
+  if (times <= 0 | !is.numeric(times)) {
+    stop("Times has to be a positive integer")
+  }
+  TRUE
+}
+
+fair_die <- die()
+roll(fair_die, times = 30)
+
+throw <- roll(fair_die, times = 10)
+
+```
+
+
+```{r}
+#' @title summary.roll
+#' @description to give the summary of roll
+#' @param x the roll
+#' @return side as the various sides of the die
+#' @return count as the number of times a particular face appears
+#' @return prob as probability of a particular face in the entire roll
+#' @export
+
+set.seed(123)
+fair_50rolls <- roll(fair_die, times = 50)
+
+summary.roll <- function(x){
+  freqs <- list(
+    side = x$side,
+    count = as.data.frame(table(x$roll))$Freq,
+    prob = as.data.frame(table(x$roll))$Freq/x$total
+  )
+  class(freqs) <- "summary.roll"
+  freqs
+}
+#' @export
+print.summary.roll <- function(x){
+  cat('summary "roll"\n\n')
+  cd <- data.frame(side = x$side, 
+    count = x$count, 
+    prob = x$prob)
+  print(cd)
+  invisible(x)
+}
+
+
+fair50_sum <- summary(fair_50rolls)
+fair50_sum
+
+#' @title plot.roll
+#' @description to barplot the roll
+#' @param x the result of roll function
+#' @return a barplot of probability
+
+plot.roll <- function(x){
+  plotthis <- barplot(
+    as.data.frame(table(x$roll))$Freq/x$total,
+    names.arg = x$side,
+    xlab = "Sides of Die",
+    ylab = "Relative Frequencies"
+  )
+  plotthis
+}
+
+plot(fair_50rolls)
+
+```
+
+```{r}
+# Additional Methods
+set.seed(123)
+fair_die <- die()
+fair500 <- roll(fair_die, times = 500)
+summary(fair500)
+
+"[.roll" <- function(x, i){
+  x$roll[i]
+}
+"[<-.roll" <- function(x, i, value){
+  x$roll[i] <- as.integer(value)
+}
+
+fair500[500]
+```
+
+```{r}
+# De Mere's Problem
+# Problem 1
+
+lst <- matrix("", nrow = 1000, ncol = 4)
+
+for (i in 1:1000){
+  lst[i,] <- roll(die(), times = 4)$roll
+}
+
+# relative frequency of getting at least one 6 = 69.1%
+length(which(lst==6))/1000
+
+# Problem 2
+
+lst2 <- matrix("", nrow = 1000, ncol = 24)
+
+
+sum(roll(die(), times = 2)$roll)==12
+
+for (i in 1:24000){
+ lst2[i] <- sum(roll(die(), times = 2)$roll)
+}
+
+# relative frequency of getting a pair of 6 in 24 rolls out of 1000 games = 2.78%
+length(which(lst2==12))/length(lst2)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
